@@ -7,9 +7,10 @@ import os
 
 # Set the path to the image folder
 image_folder = "D:/PycharmProjects/mP2/photos"
+image_path = ""
 model = joblib.load('D:/PycharmProjects/mst/trained_model_hue.pkl')
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-
+class_names = ["Cool", "Warm"]
 # Function to crop face, resize, and preprocess for model prediction
 def preprocess_image_for_prediction(image_path, target_size=(150, 150)):
     # Load the image
@@ -35,17 +36,26 @@ def preprocess_image_for_prediction(image_path, target_size=(150, 150)):
         return None
 
 # Function to process a folder of images
-def process_image_folder(image_folder):
+def process_image_folder(image_folder, class_name):
     for filename in os.listdir(image_folder):
         if filename.endswith((".jpg",".jpeg",".png", ".jfif")):
             image_path = os.path.join(image_folder, filename)
             preprocessed_image = preprocess_image_for_prediction(image_path)
             if preprocessed_image is not None:
                 predictions = model.predict(preprocessed_image)
-                class_names = ["Cool", "Warm"]  # Replace with your class names
                 predicted_class = class_names[np.argmax(predictions)]
 
                 print(f'Image: {filename}, Predicted class: {predicted_class}')
 
+
+def preprocess_iamge(image_path, class_name):
+    preprocessed_image = preprocess_image_for_prediction(image_path)
+    if preprocessed_image is not None:
+        predictions = model.predict(preprocessed_image)
+        predicted_class = class_names[np.argmax(predictions)]
+
+        print(f'Image: {filename}, Predicted class: {predicted_class}')
+
 # Call the function to process the folder
-process_image_folder(image_folder)
+process_image_folder(image_folder, class_name)
+# preprocess_image(image_path, class_name
