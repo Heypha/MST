@@ -203,6 +203,10 @@ class_names = labels[:len(test_class_indices)]
 test_confidence_scores = [test_predictions[i].max() for i in range(len(test_predictions))]
 results_df = pd.DataFrame({'File': image_paths, 'Predicted_Label': predicted_labels, 'Confidence_Score': test_confidence_scores})
 results_json = results_df.to_json(orient='records')
+pre_label = test_predictions.argmax(axis=1)
+true_labels = test_generator.classes
+precision = precision_score(true_labels, pre_label)
+print(precision)
 with open('test_results_hue_hsvyuv2.json', 'w') as file:
     file.write(results_json)
 
