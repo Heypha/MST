@@ -34,7 +34,7 @@ for set in sets:
     remove_images_with_suffix(destination_directory + set)
 
 def folder_create(old_dir,sufix):
-    class_names = ['Bright','Mid', 'Muted']
+    class_names = ['Bright', 'Muted']
 
     # Folder Create Segment
     new_dir = old_dir + sufix
@@ -64,12 +64,37 @@ def crop_face(image_path):
         return face
     else:
         return None
+        
+def increase_saturation(image, saturation_factor=1.5):
+    """
+    Increase the saturation of an image.
 
-def save_photo(destination_path,photo_paths_list,classificator,ifFace):
+    Parameters:
+    - image (PIL.Image.Image): The input image.
+    - saturation_factor (float): The factor by which to increase the saturation. Default is 1.5.
+
+    Returns:
+    - image_enhanced (PIL.Image.Image): The image with increased saturation.
+    """
+    enhancer = ImageEnhance.Color(image)
+    image_enhanced = enhancer.enhance(saturation_factor)
+    return image_enhanced
+
+def save_photo(destination_path,photo_paths_list,classificator,ifFace, saturation_factor=1.5):
     if ifFace:
         for image_path, class_name in zip(photo_paths_list, classificator):
             face = crop_face(image_path)
             if face is not None:
+                # Convert the cropped face to a PIL image
+                face_pil = Image.fromarray(cv2.cvtColor(face, cv2.COLOR_BGR2RGB))
+
+                # Increase saturation
+                face_enhanced = increase_saturation(face_pil, saturation_factor)
+
+                # Save the enhanced face image
+                save_path = os.path.join(destination_path, class_name, os.path.basename(image_path))
+                face_enhanced.save(save_path)
+                #################################
                 # face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
                 # face = cv2.cvtColor(face, cv2.COLOR_BGR2LAB)
                 # face = cv2.cvtColor(face, cv2.COLOR_LAB2BGR)
@@ -138,27 +163,27 @@ validation_datagen = ImageDataGenerator(rescale=1/255)
 # Flow training images in batches of 120 using train_datagen generator
 train_generator = train_datagen.flow_from_directory(
         cropped_train_dir,  # This is the source directory for training images
-        classes = ['Bright','Mid', 'Muted'],
+        classes = ['Bright', 'Muted'],
         target_size=(150,150),  # All images will be resized to 200x200
-        batch_size=32,
+        batch_size=120,
         # Use binary labels
         class_mode='categorical',  # For classification tasks
     shuffle=True)
 # Flow validation images in batches of 19 using valid_datagen generator
 test_generator = test_datagen.flow_from_directory(
         cropped_test_dir,  # This is the source directory for training images
-        classes = ['Bright','Mid', 'Muted'],
+        classes = ['Bright', 'Muted'],
         target_size=(150,150),  # All images will be resized to 200x200
-        batch_size=32,
+        batch_size=19,
         # Use binary labels
         class_mode='categorical',
         shuffle=False)
 # Flow validation images in batches of 19 using valid_datagen generator
 validation_generator = validation_datagen.flow_from_directory(
         cropped_val_dir,  # This is the source directory for training images
-        classes = ['Bright','Mid', 'Muted'],
+        classes = ['Bright', 'Muted'],
         target_size=(150,150),  # All images will be resized to 200x200
-        batch_size=32,
+        batch_size=19,
         # Use binary labels
         class_mode='categorical',
         shuffle=False)
@@ -196,11 +221,11 @@ model.compile(optimizer = tf.optimizers.Adam(),
               metrics=['accuracy'])
 history = model.fit(train_generator,
       steps_per_epoch=len(train_generator),
-      epochs=36,
+      epochs=25,
       validation_data = validation_generator,
       validation_steps=len(validation_generator))
 
-loss, accuracy = model.evaluate(validation_generator)
+loss, accuracy= model.evaluate(test_generator, steps=len(test_generator))
 print("Test loss:", loss)
 print("Test accuracy:", accuracy)
 
@@ -218,17 +243,17 @@ true_labels = test_generator.classes
 import pickle
 
 # Save data
-with open('trained_model_saturation_new3.pkl', 'wb') as file:
+with open('trained_model_saturation.pkl', 'wb') as file:
     pickle.dump(model, file)
 
 class_names = labels[:len(test_class_indices)]
 test_confidence_scores = [test_predictions[i].max() for i in range(len(test_predictions))]
 results_df = pd.DataFrame({'File': image_paths, 'Predicted_Label': predicted_labels, 'Confidence_Score': test_confidence_scores})
 results_json = results_df.to_json(orient='records')
-with open('test_results_saturation_new3.json', 'w') as file:
+with open('test_results_saturation.json', 'w') as file:
     file.write(results_json)
 
-
+model = None
 ######################
 ## Dodatkowo niech wycina background ze zdjecia
 #Proposition: To do % about groups :Hue(Warm/Cool), Value(Soft/Bright), Chroma(Light/Dark) and then based on the % classify them to seasons
