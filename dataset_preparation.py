@@ -38,12 +38,13 @@ class ImageProcessor:
             ext = os.path.splitext(image_file)[1]
             new_name = f"{first_letters}_{i:03d}{ext}"
             new_path = os.path.join(folder_path, new_name)
-            os.rename(os.path.join(folder_path, image_file), os.path.join(folder_path, new_name))
+            os.rename(os.path.join(folder_path, image_file), new_path)
             print(f"Renamed: {image_file} to {new_name}")
 
     def convert_images_to_png(self):
-        if not os.path.exists(self.destination_folder):
-            os.makedirs(self.destination_folder)
+        if os.path.exists(self.destination_folder):
+            shutil.rmtree(self.destination_folder)
+        os.makedirs(self.destination_folder)
 
         for root, dirs, files in os.walk(self.root_folder):
             for filename in files:
@@ -55,6 +56,9 @@ class ImageProcessor:
                     print(f"Converted: {filename} to {new_filename}")
 
     def create_csv_file(self, fileList, labels):
+        if os.path.exists(self.csv_output_file):
+            os.remove(self.csv_output_file)
+
         with open(self.csv_output_file, 'w', newline='') as csvfile:
             csvwriter = csv.writer(csvfile)
             csvwriter.writerow(['Image Path', 'Label'])
@@ -77,6 +81,28 @@ class ImageProcessor:
             keywords = {
                 "Da": "Dark",
                 "Li": "Light"
+            }
+        elif config['MODEL'] == 'Seasons':
+            keywords = {
+                "Wi": "Winter",
+                "Sp": "Spring",
+                "Su": "Summer",
+                "Au": "Autumn"
+            }
+        else:
+            keywords = {
+                "BrWi": "Bright Winter",
+                "TrWi": "True Winter",
+                "DaWi": "Dark Winter",
+                "BrSp": "Bright Spring",
+                "TrSp": "True Spring",
+                "LiSp": "Light Spring",
+                "LiSu": "Light Summer",
+                "TrSu": "True Summer",
+                "MuSu": "Muted Summer",
+                "MuAu": "Muted Autumn",
+                "TrAu": "True Autumn",
+                "DaAu": "Dark Autumn"
             }
 
         for root, dirs, files in os.walk(self.destination_folder, topdown=True):
