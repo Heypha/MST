@@ -3,7 +3,9 @@ import shutil
 from PIL import Image
 import csv
 import json
-
+import cv2
+import matplotlib.pyplot as plt
+from PIL import Image, ImageEnhance
 
 def get_config():
     """
@@ -20,9 +22,12 @@ def get_config():
     with open(config_file) as config_file:
         return json.load(config_file)
 
+config = get_config()
+
 
 class ImageProcessor:
     def __init__(self):
+        self.model = config['MODEL']
         self.root_folder = os.path.join(config['ROOT_FOLDER'], config['MODEL'])
         self.destination_folder = os.path.join(config['ROOT_FOLDER'], config['MODEL'] + '_Data')
         self.csv_output_file = os.path.join(config['ROOT_FOLDER'], config['MODEL'] + '_dataset.csv')
@@ -40,6 +45,28 @@ class ImageProcessor:
             new_path = os.path.join(folder_path, new_name)
             os.rename(os.path.join(folder_path, image_file), new_path)
             print(f"Renamed: {image_file} to {new_name}")
+
+    def train_images_preprocessing(self, face, save_path):
+        if self.model == 'Saturation':
+            hsv = cv2.cvtColor(face, cv2.COLOR_BGR2HSV)
+            h, s, v = cv2.split(hsv)
+            s = cv2.convertScaleAbs(s, alpha=1.5, beta=0)
+            enhanced_hsv = cv2.merge([h, s, v])
+            face = cv2.cvtColor(enhanced_hsv, cv2.COLOR_HSV2BGR)
+            cv2.imwrite(save_path, face)
+        elif self.model == 'Value':
+            face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+            cv2.imwrite(save_path, face)
+        elif self.model == 'Hue':
+            face = cv2.cvtColor(face, cv2.COLOR_BGR2HSV)
+            face = cv2.cvtColor(face, cv2.COLOR_BGR2YUV)
+            plt.imshow(face)
+            plt.axis('off')
+            plt.tight_layout()
+            plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
+            plt.close()
+        else:
+            cv2.imwrite(save_path, face)
 
     def convert_images_to_png(self):
         if os.path.exists(self.destination_folder):
@@ -75,7 +102,7 @@ class ImageProcessor:
         elif config['MODEL'] == 'Hue':
             keywords = {
                 "Wa": "Warm",
-                "Co": "Cold"
+                "Co": "Cool"
             }
         elif config['MODEL'] == 'Value':
             keywords = {
@@ -133,7 +160,6 @@ class ImageProcessor:
 
 
 if __name__ == "__main__":
-    config = get_config()
     processor = ImageProcessor()
     processor.process_all_folders()
     processor.convert_images_to_png()
