@@ -10,5 +10,7 @@
   "VAL_SIZE": 0.15,
   "EPOCHS": 20,
   "BATCH_TRAIN": 32,
-  "BATCH_TEST": 8
+  "BATCH_TEST": 8,
+  "JSON_OUTPUT": "D:/PycharmProjects/mst/test_output.json",
+  "TEST_DATA": "D:/PycharmProjects/mP2/TrainData"
 }
