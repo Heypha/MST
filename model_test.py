@@ -166,4 +166,4 @@ def process_image_folder(image_folder, output_json, destination_path=None):
         json.dump(results, f, indent=4)
 
 # Example usage
-process_image_folder("D:/PycharmProjects/mP2/TrainData", 'D:/PycharmProjects/mst/final_models_test.json', 'D:/PycharmProjects/mst/dest_test')
+process_image_folder(config['TEST_DATA'], config['JSON_OUTPUT'], 'D:/PycharmProjects/mst/dest_test')
