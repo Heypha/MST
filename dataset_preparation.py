@@ -1,6 +1,5 @@
 import os
 import shutil
-from PIL import Image
 import csv
 import json
 import cv2
@@ -126,8 +125,8 @@ class ImageProcessor:
                 "LiSp": "Light Spring",
                 "LiSu": "Light Summer",
                 "TrSu": "True Summer",
-                "MuSu": "Muted Summer",
-                "MuAu": "Muted Autumn",
+                "SoSu": "Soft Summer",
+                "SoAu": "Soft Autumn",
                 "TrAu": "True Autumn",
                 "DaAu": "Dark Autumn"
             }
