@@ -1,4 +1,14 @@
 {
-  "MODEL": "Saturation",
-  "ROOT_FOLDER": "D:/TEST"
+  "MODEL": "Value",
+  "ROOT_FOLDER": "D:/PycharmProjects/mP2",
+  "Saturation": ["Bright", "Muted"],
+  "Value": ["Dark", "Light"],
+  "Hue": ["Cool", "Warm"],
+  "Seasons": ["Autumn", "Spring", "Summer", "Winter"],
+  "TEST_SIZE": 0.3,
+  "RANDOM_STATE": 64,
+  "VAL_SIZE": 0.15,
+  "EPOCHS": 20,
+  "BATCH_TRAIN": 32,
+  "BATCH_TEST": 8
 }
