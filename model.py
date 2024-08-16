@@ -206,9 +206,9 @@ history = None
 # "TEST_SIZE": 0.3,
 # "RANDOM_STATE": 42,
 # "VAL_SIZE": 0.15,
-# "EPOCHS": 20,
-# "BATCH_TRAIN": 32,
-# "BATCH_TEST": 8
+# "EPOCHS": 20, 25
+# "BATCH_TRAIN": 32, 32/32/120
+# "BATCH_TEST": 8, 32/16/19
 
 #VALUE CONFIG
 # "TEST_SIZE": 0.3,
