@@ -3,7 +3,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.utils import shuffle  # Import shuffle function
+from sklearn.utils import shuffle
+import joblib
 
 # Load the processed data
 df = pd.read_csv('train.csv')
@@ -12,8 +13,8 @@ df = pd.read_csv('train.csv')
 df = shuffle(df, random_state=42)
 
 # Prepare features (X) and target (y)
-X = df.drop(columns=['file', 'True_Label'])  # Drop non-feature columns
-y = df['True_Label']  # Target variable
+X = df.drop(columns=['file_name', 'true_label'])  # Drop non-feature columns
+y = df['true_label']  # Target variable
 
 # Encode the target variable
 label_encoder = LabelEncoder()
@@ -34,11 +35,13 @@ y_pred = model.predict(X_test)
 # Evaluate the model
 accuracy = accuracy_score(y_test, y_pred)
 print(f'Accuracy: {accuracy:.2f}')
-print(classification_report(y_test, y_pred, target_names=label_encoder.classes_))
+
+# Use labels parameter to avoid mismatch issues
+labels = label_encoder.transform(label_encoder.classes_)
+print(classification_report(y_test, y_pred, target_names=label_encoder.classes_, labels=labels))
 
 # Optionally, save the trained model for future use
-import joblib
-joblib.dump(model, 'logistic_regression_model.pkl')
+joblib.dump(model, 'final_model.pkl')
 
 # Predicting on new data
 new_predictions = model.predict(X_test)  # Example using X_test
