@@ -84,6 +84,6 @@ def prepare_test_dataset(json_file, output_csv=None):
 
 
 # Example usage
-train_df = prepare_train_dataset('train_output.json', output_csv='train.csv')
+# train_df = prepare_train_dataset('test_output.json', output_csv='test.csv')
 test_df = prepare_test_dataset('test_output.json', output_csv='test.csv')
 

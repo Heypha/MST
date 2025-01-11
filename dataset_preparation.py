@@ -15,7 +15,7 @@ def get_config():
     """
 
     file_path = os.path.dirname(os.path.abspath(__file__))
-    config_file_name = "config.json"
+    config_file_name = "conifg.json"
     config_file = os.path.join(file_path, config_file_name)
 
     with open(config_file) as config_file:
@@ -36,7 +36,7 @@ class ImageProcessor:
         folder_name = os.path.basename(folder_path)
         words = folder_name.split()
         first_letters = ''.join([word[:2] for word in words])
-        image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.jfif'))]
+        image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(('.com', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.jfif'))]
 
         for i, image_file in enumerate(image_files, start=1):
             ext = os.path.splitext(image_file)[1]
@@ -74,7 +74,7 @@ class ImageProcessor:
 
         for root, dirs, files in os.walk(self.root_folder):
             for filename in files:
-                if filename.endswith((".jpg", ".jpeg", ".png", ".bmp", ".gif", ".jfif")):
+                if filename.endswith((".jpg", ".jpeg", ".png", ".bmp", ".gif", ".jfif", ".webp", ".com")):
                     image_path = os.path.join(root, filename)
                     img = Image.open(image_path)
                     new_filename = os.path.splitext(filename)[0] + ".png"

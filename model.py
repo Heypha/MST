@@ -6,8 +6,9 @@ import cv2
 import os
 import shutil
 import tensorflow as tf
-import datatset_preparation as dp
+import dataset_preparation as dp
 import pickle
+
 
 config = dp.get_config()
 class_names = config[config['MODEL']]

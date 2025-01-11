@@ -1,7 +1,7 @@
 import os
 import cv2
 import numpy as np
-import datatset_preparation as dp
+import dataset_preparation as dp
 import pickle
 import json
 import matplotlib.pyplot as plt
@@ -16,9 +16,9 @@ models = []
 class_names_list = []
 
 model_files = [
-    ('D:/PycharmProjects/mst/Hue_MODEL.pkl', config['Hue']),
-    ('D:/PycharmProjects/mst/Saturation_MODEL.pkl', config['Saturation']),
-    ('D:/PycharmProjects/mst/Value_MODEL.pkl', config['Value'])
+    ('D:/PycharmProjects/MST/Hue_MODEL.pkl', config['Hue']),
+    ('D:/PycharmProjects/MST/Saturation_MODEL.pkl', config['Saturation']),
+    ('D:/PycharmProjects/MST/Value_MODEL.pkl', config['Value'])
 ]
 
 suffixes = ['_hue', '_sat', '_val']
@@ -117,4 +117,4 @@ def process_image_folder(image_folder, output_json, destination_path=None):
 
 
 # Example usage
-process_image_folder(config['TEST_DATA'], config['JSON_OUTPUT'], 'D:/PycharmProjects/mst/dest_test')
+process_image_folder(config['TEST_DATA'], config['JSON_OUTPUT'], 'D:/PycharmProjects/MST/Test_destination')
