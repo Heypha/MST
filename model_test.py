@@ -16,9 +16,9 @@ models = []
 class_names_list = []
 
 model_files = [
-    ('D:/PycharmProjects/MST/Hue_MODEL.pkl', config['Hue']),
-    ('D:/PycharmProjects/MST/Saturation_MODEL.pkl', config['Saturation']),
-    ('D:/PycharmProjects/MST/Value_MODEL.pkl', config['Value'])
+    ('D:/PycharmProjects/MST/Models/Hue_MODEL.pkl', config['Hue']),
+    ('D:/PycharmProjects/MST/Models/Saturation_MODEL.pkl', config['Saturation']),
+    ('D:/PycharmProjects/MST/Models/Value_MODEL.pkl', config['Value'])
 ]
 
 suffixes = ['_hue', '_sat', '_val']
@@ -53,9 +53,10 @@ def preprocess_image(image_path, model_index, destination_path=None):
         preprocessed_image = cv2.resize(preprocessed_image, (150, 150)) / 255.0
         return np.expand_dims(preprocessed_image, axis=0)
 
-    face = crop_face(image_path)
-    if face is None:
-        raise ValueError("No face detected in the image.")
+    face = cv2.imread(image_path)
+    # face = crop_face(image_path)
+    # if face is None:
+    #     raise ValueError("No face detected in the image.")
 
     if model_index == 0:
         face = cv2.cvtColor(face, cv2.COLOR_BGR2HSV)
@@ -87,11 +88,21 @@ def preprocess_image(image_path, model_index, destination_path=None):
 
 
 def process_image_folder(image_folder, output_json, destination_path=None):
-    results = []
+    # Load existing results if file exists
+    if os.path.exists(output_json):
+        with open(output_json, 'r') as f:
+            results = json.load(f)
+    else:
+        results = []
+
+    # Get already processed filenames to avoid duplication
+    processed_files = {entry['file_name'] for entry in results}
 
     for image_file in os.listdir(image_folder):
-        if image_file.lower().endswith(('.png', '.jpg', '.jpeg')):
+        if image_file.lower().endswith(('.png', '.jpg', '.jpeg')) and image_file not in processed_files:
             image_path = os.path.join(image_folder, image_file)
+            base_name = os.path.splitext(image_file)[0]
+
             try:
                 image_result = {'file_name': image_file, 'predictions': []}
 
@@ -109,12 +120,19 @@ def process_image_folder(image_folder, output_json, destination_path=None):
                     })
 
                 results.append(image_result)
+
+                # Save updated results after every image
+                with open(output_json, 'w') as f:
+                    json.dump(results, f, indent=4)
+
+                print(f"Processed: {image_file}")
+
             except ValueError as e:
                 print(f"Skipping {image_file}: {e}")
+        else:
+            print(f"Skipping already processed image: {image_file}")
 
-    with open(output_json, 'w') as f:
-        json.dump(results, f, indent=4)
 
 
 # Example usage
-process_image_folder(config['TEST_DATA'], config['JSON_OUTPUT'], 'D:/PycharmProjects/MST/Test_destination')
+process_image_folder(config['TEST_DATA'], config['JSON_OUTPUT'], 'D:/PycharmProjects/MST/Train_destination_2')

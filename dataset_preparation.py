@@ -27,7 +27,8 @@ config = get_config()
 class ImageProcessor:
     def __init__(self):
         self.model = config['MODEL']
-        self.root_folder = os.path.join(config['ROOT_FOLDER'], config['MODEL'])
+        self.root_folder = os.path.join(config['ROOT_FOLDER'], 'Seasons')
+        self.season_folder =os.path.join(config['ROOT_FOLDER'], 'Seasons')
         self.destination_folder = os.path.join(config['ROOT_FOLDER'], config['MODEL'] + '_Data')
         self.csv_output_file = os.path.join(config['ROOT_FOLDER'], config['MODEL'] + '_dataset.csv')
 
@@ -47,11 +48,12 @@ class ImageProcessor:
 
     def train_images_preprocessing(self, face, save_path):
         if self.model == 'Saturation':
-            hsv = cv2.cvtColor(face, cv2.COLOR_BGR2HSV)
-            h, s, v = cv2.split(hsv)
-            s = cv2.convertScaleAbs(s, alpha=1.5, beta=0)
-            enhanced_hsv = cv2.merge([h, s, v])
-            face = cv2.cvtColor(enhanced_hsv, cv2.COLOR_HSV2BGR)
+            # face = cv2.medianBlur(face, 15)
+            # hsv = cv2.cvtColor(face, cv2.COLOR_BGR2HSV)
+            # h, s, v = cv2.split(hsv)
+            # s = cv2.convertScaleAbs(s, alpha=1.5, beta=0)
+            # enhanced_hsv = cv2.merge([h, s, v])
+            # face = cv2.cvtColor(enhanced_hsv, cv2.COLOR_HSV2BGR)
             cv2.imwrite(save_path, face)
         elif self.model == 'Value':
             face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
@@ -72,14 +74,46 @@ class ImageProcessor:
             shutil.rmtree(self.destination_folder)
         os.makedirs(self.destination_folder)
 
-        for root, dirs, files in os.walk(self.root_folder):
-            for filename in files:
-                if filename.endswith((".jpg", ".jpeg", ".png", ".bmp", ".gif", ".jfif", ".webp", ".com")):
-                    image_path = os.path.join(root, filename)
-                    img = Image.open(image_path)
-                    new_filename = os.path.splitext(filename)[0] + ".png"
-                    img.save(os.path.join(self.destination_folder, new_filename))
-                    print(f"Converted: {filename} to {new_filename}")
+        # Mapa sezonów do kategorii modelu
+        model_map = {
+            'Saturation': {
+                'Bright': ['Bright Spring', 'Bright Winter'],
+                'Muted': ['Soft Autumn', 'Soft Summer']
+            },
+            'Hue': {
+                'Warm': ['True Spring', 'True Autumn'],
+                'Cool': ['True Winter', 'True Summer']
+            },
+            'Value': {
+                'Dark': ['Dark Autumn', 'Dark Winter'],
+                'Light': ['Light Spring', 'Light Summer']
+            },
+            'Seasons': {
+                'Winter': ['Bright Winter', 'True Winter', 'Dark Winter'],
+                'Spring': ['Bright Spring', 'True Spring', 'Light Spring'],
+                'Summer': ['Light Summer', 'True Summer', 'Soft Summer'],
+                'Autumn': ['Soft Autumn', 'True Autumn', 'Dark Autumn']
+            }
+        }
+
+        for season_dir in os.listdir(self.root_folder):
+            season_path = os.path.join(self.root_folder, season_dir)
+            if not os.path.isdir(season_path):
+                continue
+
+            for file in os.listdir(season_path):
+                if file.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.gif', '.jfif', '.webp', '.com')):
+                    file_path = os.path.join(season_path, file)
+                    img = cv2.imread(file_path)
+
+                    # Znajdź kategorię docelową
+                    for category, folders in model_map[self.model].items():
+                        if season_dir in folders:
+                            dest_cat_path = os.path.join(self.destination_folder, category)
+                            os.makedirs(dest_cat_path, exist_ok=True)
+                            save_path = os.path.join(dest_cat_path, file)
+                            cv2.imwrite(save_path, img)
+                            print(f"Saved {file} to {category}")
 
     def create_csv_file(self, fileList, labels):
         if os.path.exists(self.csv_output_file):
@@ -96,12 +130,14 @@ class ImageProcessor:
         if config['MODEL'] == 'Saturation':
             keywords = {
                 "Br": "Bright",
-                "Mu": "Muted"
+                "So": "Muted"
             }
         elif config['MODEL'] == 'Hue':
             keywords = {
-                "Wa": "Warm",
-                "Co": "Cool"
+                "TrSp": "Warm",
+                "TrAu": "Warm",
+                "TrSu": "Cool",
+                "TrWi": "Cool"
             }
         elif config['MODEL'] == 'Value':
             keywords = {
@@ -158,8 +194,38 @@ class ImageProcessor:
                 self.rename_images_in_folder(folder_path)
 
 
+    def convert_all_to_png_first(self):
+        source_root = self.season_folder
+        output_root = self.root_folder
+
+        if os.path.exists(output_root):
+            shutil.rmtree(output_root)
+        os.makedirs(output_root, exist_ok=True)
+
+        for season_dir in os.listdir(source_root):
+            season_path = os.path.join(source_root, season_dir)
+            if not os.path.isdir(season_path):
+                continue
+
+            output_season_dir = os.path.join(output_root, season_dir)
+            os.makedirs(output_season_dir, exist_ok=True)
+
+            for file in os.listdir(season_path):
+                if file.lower().endswith(('.jpg', '.jpeg', '.bmp', '.gif', '.jfif', '.webp', '.com', '.png')):
+                    try:
+                        input_path = os.path.join(season_path, file)
+                        img = Image.open(input_path).convert("RGB")  # Ensure proper format
+
+                        filename_wo_ext = os.path.splitext(file)[0]
+                        output_path = os.path.join(output_season_dir, filename_wo_ext + ".png")
+                        img.save(output_path, format="PNG")
+                        print(f"Converted {file} to PNG in {season_dir}")
+                    except Exception as e:
+                        print(f"Failed to convert {file} in {season_dir}: {e}")
+
+
 if __name__ == "__main__":
     processor = ImageProcessor()
-    processor.process_all_folders()
+    # processor.convert_all_to_png_first()
     processor.convert_images_to_png()
     processor.create_file_list()

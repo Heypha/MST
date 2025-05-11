@@ -9,7 +9,7 @@ model = joblib.load('final_model.pkl')
 new_df = pd.read_csv('test.csv')
 
 # Drop non-feature columns
-X_new = new_df.drop(columns=['file_name'])  # Adjust as needed
+X_new = new_df.drop(columns=['file_name', 'true_label'])  # Adjust as needed
 
 # Ensure the new data has the same feature columns as the training data
 # You might need to align columns if they are not in the same order

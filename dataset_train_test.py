@@ -83,7 +83,22 @@ def prepare_test_dataset(json_file, output_csv=None):
     return df_test
 
 
-# Example usage
-# train_df = prepare_train_dataset('test_output.json', output_csv='test.csv')
-test_df = prepare_test_dataset('test_output.json', output_csv='test.csv')
+from sklearn.model_selection import train_test_split
+
+def split_train_test(json_file, train_output='train.csv', test_output='test.csv'):
+    # Process full dataset with true labels
+    df = process_json_data(json_file, include_true_labels=True)
+
+    # Split the dataset 50/50
+    df_train, df_test = train_test_split(df, test_size=0.35, random_state=42, shuffle=True)
+
+    # Save to CSV
+    df_train.to_csv(train_output, index=False)
+    df_test.to_csv(test_output, index=False)
+
+    return df_train, df_test
+
+
+# Call the function
+train_df, test_df = split_train_test('train_output.json')
 

@@ -8,8 +8,8 @@ import shutil
 import tensorflow as tf
 import dataset_preparation as dp
 import pickle
-
-
+from resault_count import count_results
+from collections import Counter
 config = dp.get_config()
 class_names = config[config['MODEL']]
 layers = len(class_names)
@@ -24,6 +24,10 @@ labels = data['Label']
 # Split the data into training, validation, and test sets
 train_files, test_files, train_labels, test_labels = train_test_split(image_files, labels, test_size=config['TEST_SIZE'], random_state=config['RANDOM_STATE'])
 train_files, val_files, train_labels, val_labels = train_test_split(train_files, train_labels, test_size=config['VAL_SIZE'], random_state=config['RANDOM_STATE'])
+
+print("Train:", Counter(train_labels))
+print("Val:", Counter(val_labels))
+print("Test:", Counter(test_labels))
 
 # Destination directory
 destination_directory = os.path.join(config['ROOT_FOLDER'], config['MODEL'] + '_destination')
@@ -82,7 +86,8 @@ def save_photo(destination_path, photo_paths_list, classificator, ifFace):
     else:
         for image_path, class_name in zip(photo_paths_list, classificator):
             save_path = os.path.join(destination_path, class_name, os.path.basename(image_path))
-            shutil.copy(image_path, save_path)
+            img = cv2.imread(image_path)
+            process.train_images_preprocessing(img, save_path)
 
 sufixes = ["train", "test", "val"]
 
@@ -96,9 +101,13 @@ cropped_train_dir = folder_create(train_dir, '_cropped')
 cropped_test_dir = folder_create(test_dir, '_cropped')
 cropped_val_dir = folder_create(val_dir, '_cropped')
 
-save_photo(cropped_train_dir, train_files, train_labels, True)
-save_photo(cropped_test_dir, test_files, test_labels, True)
-save_photo(cropped_val_dir, val_files, val_labels, True)
+save_photo(cropped_train_dir, train_files, train_labels, False)
+save_photo(cropped_test_dir, test_files, test_labels, False)
+save_photo(cropped_val_dir, val_files, val_labels, False)
+
+# cropped_train_dir = "D:/PycharmProjects/MST/Data/Value_destination/train_set_cropped"
+# cropped_test_dir = "D:/PycharmProjects/MST/Data/Value_destination/test_set_cropped"
+# cropped_val_dir = "D:/PycharmProjects/MST/Data/Value_destination/val_set_cropped"
 
 # All images will be rescaled by 1./255
 train_datagen = ImageDataGenerator(rescale=1/255)
@@ -154,6 +163,7 @@ model.add(keras.layers.Flatten())
 # Hidden layer with 512 neurons and Rectified Linear Unit activation function
 model.add(keras.layers.Dense(512, activation='relu'))
 
+
 # Output layer with single neuron which gives 0 for Cat or 1 for Dog
 model.add(keras.layers.Dense(layers, activation=activation))
 model.compile(optimizer=tf.optimizers.Adam(),
@@ -182,27 +192,29 @@ true_labels = test_generator.classes
 # print(precision)
 
 # Save data
-with open(config['MODEL'] + '_MODEL.pkl', 'wb') as file:
+with open('Models/' + config['MODEL'] + '_MODEL.pkl', 'wb') as file:
     pickle.dump(model, file)
 
 class_names = labels[:len(test_class_indices)]
 test_confidence_scores = [test_predictions[i].max() for i in range(len(test_predictions))]
 results_df = pd.DataFrame({'File': image_paths, 'Predicted_Label': predicted_labels, 'Confidence_Score': test_confidence_scores})
 results_json = results_df.to_json(orient='records')
-with open(config['MODEL'] + '_RESULTS.json', 'w') as file:
+with open('Results/' + config['MODEL'] + '_RESULTS.json', 'w') as file:
     file.write(results_json)
+
+count_results('Results/' + config['MODEL'] + '_RESULTS.json')
 
 model = None
 history = None
 ######################
 #HUE CONFIG
-# "TEST_SIZE": 0.3,
+# "TEST_SIZE": 0.4,
 # "RANDOM_STATE": 64,
 # "VAL_SIZE": 0.15,
-# "EPOCHS": 25,
-# "BATCH_TRAIN": 32,
-# "BATCH_TEST": 32
-
+# "EPOCHS": 45,
+# "BATCH_TRAIN": 64,
+# "BATCH_TEST": 64,
+# moze jeszcze dotrenowac
 #SATURATION CONFIG
 # "TEST_SIZE": 0.3,
 # "RANDOM_STATE": 42,
